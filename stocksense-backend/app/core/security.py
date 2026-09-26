@@ -1,6 +1,7 @@
 """JWT and password-security helpers."""
 
 from datetime import datetime, timedelta, timezone
+import secrets
 
 from jose import jwt
 from passlib.context import CryptContext
@@ -28,7 +29,19 @@ def create_access_token(subject: str) -> str:
         minutes=settings.access_token_expire_minutes
     )
     return jwt.encode(
-        {"sub": subject, "exp": expires_at},
+        {"sub": subject, "exp": expires_at, "type": "access", "jti": secrets.token_urlsafe(16)},
+        settings.jwt_secret_key,
+        algorithm=settings.jwt_algorithm,
+    )
+
+
+def create_refresh_token(subject: str) -> str:
+    """Create a longer-lived JWT that may only be exchanged for access tokens."""
+    if not settings.jwt_secret_key:
+        raise RuntimeError("JWT_SECRET_KEY is not configured")
+    expires_at = datetime.now(timezone.utc) + timedelta(days=settings.refresh_token_expire_days)
+    return jwt.encode(
+        {"sub": subject, "exp": expires_at, "type": "refresh", "jti": secrets.token_urlsafe(16)},
         settings.jwt_secret_key,
         algorithm=settings.jwt_algorithm,
     )

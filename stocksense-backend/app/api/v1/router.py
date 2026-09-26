@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 from app.api.v1 import (
 	adjustments,
+	alerts,
 	auth,
 	categories,
 	dashboard,
@@ -10,6 +11,7 @@ from app.api.v1 import (
 	inventory,
 	locations,
 	products,
+	reports,
 	receipts,
 	stock_ledger,
 	transfers,
@@ -18,6 +20,7 @@ from app.api.v1 import (
 
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(auth.router)
+api_router.include_router(alerts.router)
 api_router.include_router(categories.router)
 api_router.include_router(products.router)
 api_router.include_router(warehouses.router)
@@ -29,3 +32,4 @@ api_router.include_router(transfers.router)
 api_router.include_router(adjustments.router)
 api_router.include_router(stock_ledger.router)
 api_router.include_router(dashboard.router)
+api_router.include_router(reports.router)
