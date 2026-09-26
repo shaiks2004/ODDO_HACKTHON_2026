@@ -21,11 +21,14 @@ def get_current_user(
     if credentials is None or not settings.jwt_secret_key:
         raise HTTPException(status_code=401, detail="Not authenticated", headers={"WWW-Authenticate": "Bearer"})
     try:
-        subject = jwt.decode(
+        payload = jwt.decode(
             credentials.credentials,
             settings.jwt_secret_key,
             algorithms=[settings.jwt_algorithm],
-        ).get("sub")
+        )
+        if payload.get("type", "access") != "access":
+            raise ValueError("Token is not an access token")
+        subject = payload.get("sub")
         user_id = UUID(subject)
     except (JWTError, TypeError, ValueError):
         raise HTTPException(status_code=401, detail="Invalid authentication credentials", headers={"WWW-Authenticate": "Bearer"})

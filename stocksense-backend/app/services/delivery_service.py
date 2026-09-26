@@ -5,6 +5,7 @@ from uuid import UUID, uuid4
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import ConflictError, ResourceNotFoundError
+from app.services.alert_service import alert_service
 from app.repositories.delivery_repository import DeliveryRepository
 from app.services.movement_engine import MovementEngine
 from app.utils.enums import OperationStatus
@@ -63,7 +64,17 @@ class DeliveryService:
     def validate_delivery(self, db: Session, delivery_id: UUID):
         try:
             self.engine.validate_delivery(db, delivery_id)
+            delivery = self.repository.get(db, delivery_id)
+            changes = (
+                [(item.product_id, delivery.source_location_id) for item in delivery.items]
+                if delivery.status == OperationStatus.DONE
+                else []
+            )
             db.commit()
+            if changes:
+                alert_service.notify_after_stock_change(
+                    db, changes, operation="delivery", reference=delivery.reference
+                )
             return self.get(db, delivery_id)
         except Exception:
             db.rollback()
