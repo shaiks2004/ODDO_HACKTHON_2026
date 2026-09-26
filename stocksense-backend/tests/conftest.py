@@ -67,3 +67,47 @@ def auth_context(client: TestClient):
 		"email": email,
 		"headers": {"Authorization": f"Bearer {response.json()['access_token']}"},
 	}
+
+
+@pytest.fixture
+def staff_auth_context(client: TestClient):
+	from uuid import uuid4
+
+	email = f"staff-{uuid4().hex}@example.test"
+	response = client.post(
+		"/api/v1/auth/signup",
+		json={
+			"name": "Warehouse Staff Tester",
+			"email": email,
+			"password": "StrongPass@123",
+			"role": "WAREHOUSE_STAFF",
+		},
+	)
+	assert response.status_code == 201, response.text
+	return {
+		"client": client,
+		"email": email,
+		"headers": {"Authorization": f"Bearer {response.json()['access_token']}"},
+	}
+
+
+@pytest.fixture
+def manager_auth_context(client: TestClient):
+	from uuid import uuid4
+
+	email = f"manager-{uuid4().hex}@example.test"
+	response = client.post(
+		"/api/v1/auth/signup",
+		json={
+			"name": "Manager Tester",
+			"email": email,
+			"password": "StrongPass@123",
+			"role": "INVENTORY_MANAGER",
+		},
+	)
+	assert response.status_code == 201, response.text
+	return {
+		"client": client,
+		"email": email,
+		"headers": {"Authorization": f"Bearer {response.json()['access_token']}"},
+	}

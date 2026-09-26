@@ -5,12 +5,12 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
-from app.api.v1.auth_dependencies import get_current_user
+from app.api.v1.auth_dependencies import get_current_user, require_role
 from app.api.v1.dependencies import db_session, error
 from app.models import User
 from app.schemas.transfer import TransferCreate, TransferResponse
 from app.services.transfer_service import transfer_service
-from app.utils.enums import OperationStatus
+from app.utils.enums import OperationStatus, UserRole
 from app.utils.pagination import Page, pagination
 
 router = APIRouter(prefix="/transfers", tags=["Transfers"])
@@ -49,7 +49,11 @@ def create_transfer(payload: TransferCreate, db: Session = Depends(db_session), 
 
 
 @router.post("/{transfer_id}/validate", response_model=TransferResponse)
-def validate_transfer(transfer_id: UUID, db: Session = Depends(db_session), _user: User = Depends(get_current_user)):
+def validate_transfer(
+	transfer_id: UUID,
+	db: Session = Depends(db_session),
+	_user: User = Depends(require_role(UserRole.ADMIN, UserRole.INVENTORY_MANAGER)),
+):
 	try:
 		return transfer_service.validate_transfer(db, transfer_id)
 	except Exception as exc:
@@ -57,7 +61,11 @@ def validate_transfer(transfer_id: UUID, db: Session = Depends(db_session), _use
 
 
 @router.post("/{transfer_id}/cancel", response_model=TransferResponse)
-def cancel_transfer(transfer_id: UUID, db: Session = Depends(db_session), _user: User = Depends(get_current_user)):
+def cancel_transfer(
+	transfer_id: UUID,
+	db: Session = Depends(db_session),
+	_user: User = Depends(require_role(UserRole.ADMIN, UserRole.INVENTORY_MANAGER)),
+):
 	try:
 		return transfer_service.cancel_transfer(db, transfer_id)
 	except Exception as exc:

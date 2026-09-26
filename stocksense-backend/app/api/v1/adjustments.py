@@ -5,12 +5,12 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
-from app.api.v1.auth_dependencies import get_current_user
+from app.api.v1.auth_dependencies import get_current_user, require_role
 from app.api.v1.dependencies import db_session, error
 from app.models import User
 from app.schemas.adjustment import AdjustmentCreate, AdjustmentResponse
 from app.services.adjustment_service import adjustment_service
-from app.utils.enums import OperationStatus
+from app.utils.enums import OperationStatus, UserRole
 from app.utils.pagination import Page, pagination
 
 router = APIRouter(prefix="/adjustments", tags=["Adjustments"])
@@ -48,8 +48,24 @@ def create_adjustment(payload: AdjustmentCreate, db: Session = Depends(db_sessio
 
 
 @router.post("/{adjustment_id}/validate", response_model=AdjustmentResponse)
-def validate_adjustment(adjustment_id: UUID, db: Session = Depends(db_session), _user: User = Depends(get_current_user)):
+def validate_adjustment(
+	adjustment_id: UUID,
+	db: Session = Depends(db_session),
+	_user: User = Depends(require_role(UserRole.ADMIN, UserRole.INVENTORY_MANAGER)),
+):
 	try:
 		return adjustment_service.validate_adjustment(db, adjustment_id)
+	except Exception as exc:
+		error(exc)
+
+
+@router.post("/{adjustment_id}/cancel", response_model=AdjustmentResponse)
+def cancel_adjustment(
+	adjustment_id: UUID,
+	db: Session = Depends(db_session),
+	_user: User = Depends(require_role(UserRole.ADMIN, UserRole.INVENTORY_MANAGER)),
+):
+	try:
+		return adjustment_service.cancel_adjustment(db, adjustment_id)
 	except Exception as exc:
 		error(exc)

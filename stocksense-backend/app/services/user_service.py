@@ -13,7 +13,7 @@ class UserService:
 	def __init__(self, repository: UserRepository | None = None) -> None:
 		self.repository = repository or UserRepository()
 
-	def register(self, db: Session, *, name: str, email: str, password: str) -> User:
+	def register(self, db: Session, *, name: str, email: str, password: str, role: UserRole = UserRole.ADMIN) -> User:
 		email = email.strip().lower()
 		if self.repository.get_by_email(db, email):
 			raise ConflictError("Email is already registered")
@@ -22,7 +22,7 @@ class UserService:
 			name=name.strip(),
 			email=email,
 			password_hash=hash_password(password),
-			role=UserRole.WAREHOUSE_STAFF,
+			role=role,
 		)
 		db.commit()
 		db.refresh(user)

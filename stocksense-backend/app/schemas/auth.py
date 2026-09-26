@@ -4,11 +4,14 @@ import re
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 
+from app.utils.enums import UserRole
+
 
 class SignupRequest(BaseModel):
 	name: str = Field(min_length=1, max_length=150)
 	email: str = Field(min_length=3, max_length=254)
 	password: str = Field(min_length=8, max_length=72)
+	role: UserRole = UserRole.ADMIN
 
 	@field_validator("email")
 	@classmethod

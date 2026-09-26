@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.core.exceptions import ConflictError, ResourceNotFoundError
 from app.repositories.receipt_repository import ReceiptRepository
 from app.services.movement_engine import MovementEngine
+from app.services.print_service import print_service
 from app.utils.enums import OperationStatus
 
 
@@ -61,6 +62,10 @@ class ReceiptService:
         except Exception:
             db.rollback()
             raise
+
+    def render_print_document(self, db: Session, receipt_id: UUID) -> str:
+        receipt = self.get(db, receipt_id)
+        return print_service.render_receipt(receipt)
 
 
 receipt_service = ReceiptService()

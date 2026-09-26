@@ -11,6 +11,7 @@ from app.core.security import create_access_token, hash_password, verify_passwor
 from app.models import User
 from app.repositories.user_repository import UserRepository
 from app.services.user_service import UserService
+from app.utils.enums import UserRole
 
 
 class AuthService:
@@ -22,10 +23,10 @@ class AuthService:
 		self.repository = repository or UserRepository()
 		self.user_service = user_service or UserService(self.repository)
 
-	def signup(self, db: Session, *, name: str, email: str, password: str) -> str:
+	def signup(self, db: Session, *, name: str, email: str, password: str, role: UserRole = UserRole.ADMIN) -> str:
 		if not settings.jwt_secret_key:
 			raise RuntimeError("JWT_SECRET_KEY is not configured")
-		user = self.user_service.register(db, name=name, email=email, password=password)
+		user = self.user_service.register(db, name=name, email=email, password=password, role=role)
 		return create_access_token(str(user.id))
 
 	def login(self, db: Session, *, email: str, password: str) -> str:

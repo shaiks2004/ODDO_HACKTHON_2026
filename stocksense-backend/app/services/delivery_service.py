@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.core.exceptions import ConflictError, ResourceNotFoundError
 from app.repositories.delivery_repository import DeliveryRepository
 from app.services.movement_engine import MovementEngine
+from app.services.print_service import print_service
 from app.utils.enums import OperationStatus
 
 
@@ -80,6 +81,10 @@ class DeliveryService:
         except Exception:
             db.rollback()
             raise
+
+    def render_print_document(self, db: Session, delivery_id: UUID) -> str:
+        delivery = self.get(db, delivery_id)
+        return print_service.render_delivery(delivery)
 
 
 delivery_service = DeliveryService()

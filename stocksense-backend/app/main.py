@@ -1,16 +1,31 @@
-from sklearn.model_selection import train_test_split
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 from sqlalchemy import text
 
 from app.api.v1.router import api_router
+from app.api.v1.users import router as users_router
 from app.core.database import SessionLocal, engine
+from app.core.exceptions import AuthorizationError, InvalidOperationStatusError
 
 app = FastAPI(
     title="StockSense API",
     version="1.0.0",
     description="Inventory Management System API",
 )
+
+
+@app.exception_handler(AuthorizationError)
+def authorization_exception_handler(_request: Request, exc: AuthorizationError):
+    return JSONResponse(status_code=403, content={"detail": str(exc)})
+
+
+@app.exception_handler(InvalidOperationStatusError)
+def invalid_operation_status_handler(_request: Request, exc: InvalidOperationStatusError):
+    return JSONResponse(status_code=400, content={"detail": str(exc)})
+
+
 app.include_router(api_router)
+app.include_router(users_router)
 
 
 @app.get("/health", tags=["system"])
