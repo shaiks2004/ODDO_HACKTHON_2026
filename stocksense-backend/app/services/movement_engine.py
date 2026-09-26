@@ -17,6 +17,15 @@ class MovementEngine:
   x=db.scalar(select(Inventory).where(Inventory.product_id==product_id,Inventory.location_id==location_id).with_for_update())
   if not x and create: x=Inventory(product_id=product_id,location_id=location_id,on_hand=Decimal('0'),reserved=Decimal('0'));db.add(x);db.flush()
   return x
+ def check_delivery_availability(self,db,id):
+  d=db.scalar(select(Delivery).where(Delivery.id==id).with_for_update())
+  if not d:raise ResourceNotFoundError('Delivery not found')
+  items=list(db.scalars(select(DeliveryItem).where(DeliveryItem.delivery_id==id)))
+  if not items:raise ConflictError('Delivery must contain at least one item')
+  for item in items:
+   inv=self.inventory(db,item.product_id,d.source_location_id)
+   if not inv or inv.on_hand-inv.reserved<item.quantity:return False
+  return True
  def validate_receipt(self,db,id):
   r=db.scalar(select(Receipt).where(Receipt.id==id).with_for_update())
   if not r:raise ResourceNotFoundError('Receipt not found')
@@ -33,12 +42,13 @@ class MovementEngine:
   d=db.scalar(select(Delivery).where(Delivery.id==id).with_for_update())
   if not d:raise ResourceNotFoundError('Delivery not found')
   if d.status==OperationStatus.DONE:raise ConflictError('Delivery is already completed')
-  if d.status not in (OperationStatus.DRAFT,OperationStatus.READY,OperationStatus.WAITING):raise ConflictError('Delivery cannot be validated in its current status')
+  if d.status!=OperationStatus.READY:raise ConflictError('Delivery must be prepared and ready before validation')
   items=list(db.scalars(select(DeliveryItem).where(DeliveryItem.delivery_id==id)))
+  if not items:raise ConflictError('Delivery must contain at least one item')
   locked=[]
   for i in items:
    inv=self.inventory(db,i.product_id,d.source_location_id)
-   if not inv or inv.on_hand-inv.reserved<i.quantity: d.status=OperationStatus.WAITING;raise ConflictError('Insufficient free stock')
+   if not inv or inv.on_hand-inv.reserved<i.quantity: d.status=OperationStatus.WAITING;return
    locked.append((i,inv))
   actor=self.actor(db)
   for i,inv in locked: inv.on_hand-=i.quantity;db.add(StockLedger(product_id=i.product_id,source_location_id=d.source_location_id,movement_type=MovementType.DELIVERY,quantity=-i.quantity,reference_type='delivery',reference_id=d.id,created_by=actor))
@@ -47,8 +57,11 @@ class MovementEngine:
   t=db.scalar(select(Transfer).where(Transfer.id==id).with_for_update())
   if not t:raise ResourceNotFoundError('Transfer not found')
   if t.status==OperationStatus.DONE:raise ConflictError('Transfer is already completed')
+  if t.status not in (OperationStatus.DRAFT,OperationStatus.READY):raise ConflictError('Transfer cannot be validated in its current status')
   if t.source_location_id==t.destination_location_id:raise ConflictError('Transfer source and destination must be different')
-  items=list(db.scalars(select(TransferItem).where(TransferItem.transfer_id==id)));locked=[]
+  items=list(db.scalars(select(TransferItem).where(TransferItem.transfer_id==id)))
+  if not items:raise ConflictError('Transfer must contain at least one item')
+  locked=[]
   for i in items:
    src=self.inventory(db,i.product_id,t.source_location_id)
    if not src or src.on_hand-src.reserved<i.quantity:raise ConflictError('Insufficient free stock')
@@ -61,6 +74,11 @@ class MovementEngine:
   a=db.scalar(select(Adjustment).where(Adjustment.id==id).with_for_update())
   if not a:raise ResourceNotFoundError('Adjustment not found')
   if a.status==OperationStatus.DONE:raise ConflictError('Adjustment is already completed')
-  inv=self.inventory(db,a.product_id,a.location_id)
+  if a.status not in (OperationStatus.DRAFT,OperationStatus.READY):raise ConflictError('Adjustment cannot be validated in its current status')
+  inv=self.inventory(db,a.product_id,a.location_id,True)
   if not inv or inv.on_hand!=a.system_quantity:raise ConflictError('Inventory changed since this adjustment was created')
-  inv.on_hand=a.physical_quantity;a.status=OperationStatus.DONE;kw={'source_location_id':a.location_id} if a.difference<0 else {'destination_location_id':a.location_id};db.add(StockLedger(product_id=a.product_id,movement_type=MovementType.ADJUSTMENT,quantity=a.difference,reference_type='adjustment',reference_id=a.id,created_by=self.actor(db),**kw))
+  if a.physical_quantity < inv.reserved:raise ConflictError('Physical quantity cannot be less than reserved quantity')
+  inv.on_hand=a.physical_quantity;a.status=OperationStatus.DONE
+  if a.difference != 0:
+   kw={'source_location_id':a.location_id} if a.difference<0 else {'destination_location_id':a.location_id}
+   db.add(StockLedger(product_id=a.product_id,movement_type=MovementType.ADJUSTMENT,quantity=a.difference,reference_type='adjustment',reference_id=a.id,created_by=self.actor(db),**kw))

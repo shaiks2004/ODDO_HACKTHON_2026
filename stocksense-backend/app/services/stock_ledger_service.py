@@ -1,13 +1,14 @@
-"""Stock ledger service contract placeholder."""
+"""Read-only stock movement history service."""
 
-from typing import Any
+from app.repositories.stock_ledger_repository import StockLedgerRepository
 
 
 class StockLedgerService:
-    """Future owner of audit movement creation and history queries."""
+    def __init__(self, repository: StockLedgerRepository | None = None) -> None:
+        self.repository = repository or StockLedgerRepository()
 
-    def create_movement(self, *args: Any, **kwargs: Any) -> Any:
-        raise NotImplementedError
+    def get_history(self, db, **filters):
+        return self.repository.list(db, **filters)
 
-    def get_history(self, *args: Any, **kwargs: Any) -> Any:
-        raise NotImplementedError
+
+stock_ledger_service = StockLedgerService()
