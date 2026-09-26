@@ -1,4 +1,1 @@
-"""Category model placeholder."""
-
-class Category:
-    """Product category."""
+from app.models.all_models import Category

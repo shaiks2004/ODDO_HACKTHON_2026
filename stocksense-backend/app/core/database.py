@@ -12,7 +12,7 @@ class Base(DeclarativeBase):
     """Base class for SQLAlchemy models."""
 
 
-engine = create_engine(settings.database_url) if settings.database_url else None
+engine = create_engine(settings.database_url, pool_pre_ping=True) if settings.database_url else None
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 

@@ -1,4 +1,1 @@
-"""Receipt item model placeholder."""
-
-class ReceiptItem:
-    """Product quantity belonging to a receipt."""
+from app.models.all_models import ReceiptItem

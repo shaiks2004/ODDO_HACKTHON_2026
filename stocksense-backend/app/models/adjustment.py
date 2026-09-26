@@ -1,4 +1,1 @@
-"""Adjustment model placeholder."""
-
-class Adjustment:
-    """Physical stock-count adjustment record."""
+from app.models.all_models import Adjustment

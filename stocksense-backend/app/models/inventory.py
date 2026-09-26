@@ -1,4 +1,1 @@
-"""Inventory model placeholder."""
-
-class Inventory:
-    """Product quantity tracked at a location."""
+from app.models.all_models import Inventory

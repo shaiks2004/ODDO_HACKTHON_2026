@@ -1,4 +1,1 @@
-"""Warehouse model placeholder."""
-
-class Warehouse:
-    """Warehouse containing locations."""
+from app.models.all_models import Warehouse

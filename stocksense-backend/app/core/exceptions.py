@@ -9,6 +9,10 @@ class ResourceNotFoundError(StockSenseError):
     """Requested resource does not exist."""
 
 
+class ConflictError(StockSenseError):
+    """A unique business key is already in use."""
+
+
 class DuplicateSKUError(StockSenseError):
     """Product SKU already exists."""
 

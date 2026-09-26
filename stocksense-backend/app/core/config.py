@@ -1,5 +1,6 @@
 """Application settings loaded from environment variables."""
 
+from uuid import UUID
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -11,6 +12,7 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     otp_expire_minutes: int = 10
+    stocksense_system_user_id: UUID | None = None
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

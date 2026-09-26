@@ -1,4 +1,1 @@
-"""Stock ledger model placeholder."""
-
-class StockLedger:
-    """Immutable audit movement record."""
+from app.models.all_models import StockLedger

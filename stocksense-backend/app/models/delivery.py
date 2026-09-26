@@ -1,4 +1,1 @@
-"""Delivery model placeholder."""
-
-class Delivery:
-    """Outgoing goods operation header."""
+from app.models.all_models import Delivery

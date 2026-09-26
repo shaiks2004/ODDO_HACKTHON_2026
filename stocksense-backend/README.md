@@ -1,24 +1,6 @@
 # StockSense Backend
 
-**Architecture/Scaffolding Phase**
-
-StockSense is a modular-monolith inventory management system for inventory managers and warehouse staff. This repository currently contains the backend structure and contracts only. Business workflows, CRUD endpoints, authentication behavior, stock calculations, migrations, and persistence are intentionally not implemented yet.
-
-## Architecture
-
-- `app/api`: versioned FastAPI routers; route handlers will stay thin.
-- `app/services`: transactional business rules and workflow orchestration.
-- `app/repositories`: database access, filtering, and pagination.
-- `app/models`: SQLAlchemy model placeholders.
-- `app/schemas`: Pydantic request/response placeholders.
-- `app/core`: settings, database session infrastructure, security extension points, and exceptions.
-- `app/utils`: shared enums and reusable utility extension points.
-- `alembic`: migration configuration and future revisions.
-- `tests`: test module placeholders for each business area.
-
-## Tech Stack
-
-Python 3.11+, FastAPI, PostgreSQL, SQLAlchemy 2.x, Alembic, Pydantic v2, JWT infrastructure, secure password hashing, pytest, and pytest-asyncio.
+FastAPI 1.0 foundation for StockSense, using SQLAlchemy 2.x and the existing PostgreSQL 18 database `Oddo_Hackthon`. This phase contains database configuration, read-only ORM mappings, initial Pydantic schemas, API versioning, and health checks only. Business endpoints and stock workflows are intentionally not implemented.
 
 ## Setup
 
@@ -31,45 +13,28 @@ pip install -r requirements.txt
 Copy-Item .env.example .env
 ```
 
-Set real local values in `.env`; never commit that file. Start PostgreSQL with:
+Set a real, URL-encoded connection string in `.env`; never commit that file:
 
-```powershell
-docker compose up -d postgres
+```dotenv
+DATABASE_URL=postgresql+psycopg://<user>:<url-encoded-password>@localhost:5432/Oddo_Hackthon
+JWT_SECRET_KEY=replace-with-a-long-random-secret
+JWT_ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
-The database URL in `.env.example` matches the compose service. No tables or migration revisions exist yet. Once models are implemented, use:
+The existing database is the source of truth. The API performs no schema DDL and no Alembic migration should be generated in this phase. The separate SQL initialization files are in `database/`.
 
-```powershell
-alembic revision --autogenerate -m "initial schema"
-alembic upgrade head
-```
-
-## Running the API
+## Running and testing
 
 ```powershell
 uvicorn app.main:app --reload
+python -m pytest
 ```
 
-Swagger UI will be available at `http://127.0.0.1:8000/docs` and ReDoc at `http://127.0.0.1:8000/redoc`.
+Swagger is available at `http://127.0.0.1:8000/docs`. `GET /health` reports service status; `GET /health/db` performs a read-only `SELECT 1` connection check. `tests/test_database.py` checks that the seeded product data is visible without modifying the database.
 
-## Testing
+## Database architecture
 
-```powershell
-pytest
-```
+The mapped tables are `users`, `otp_codes`, `categories`, `products`, `warehouses`, `locations`, `inventory`, `receipts`, `receipt_items`, `deliveries`, `delivery_items`, `transfers`, `transfer_items`, `adjustments`, and `stock_ledger`.
 
-The current test modules are placeholders and do not claim implemented functionality.
-
-## Planned Tables and Relationships
-
-Planned tables are `users`, `categories`, `products`, `warehouses`, `locations`, `inventory`, `receipts`, `receipt_items`, `deliveries`, `delivery_items`, `transfers`, `transfer_items`, `adjustments`, and `stock_ledger`.
-
-Categories have many products. Warehouses have many locations. Inventory joins products to locations and will hold on-hand and reserved quantities. Receipts, deliveries, transfers, and adjustments own their item or quantity records and reference the creating user. The stock ledger records product movements with optional source and destination locations and a document reference.
-
-## Next Implementation Phase
-
-1. Implement SQLAlchemy models, constraints, indexes, and relationships.
-2. Implement Pydantic schemas and repository query contracts.
-3. Add password hashing, JWT issuance, OTP lifecycle, and auth dependencies.
-4. Implement transactional receipt, delivery, transfer, and adjustment services with ledger writes.
-5. Add routers, dashboard queries, filtering/pagination, Alembic revisions, and focused tests.
+Categories own products; warehouses own locations; inventory joins a product to a location. Receipt, delivery, transfer, adjustment, and ledger records are mapped with their actual foreign-key relationships. Inventory free-to-use remains a calculated value: `on_hand - reserved`.

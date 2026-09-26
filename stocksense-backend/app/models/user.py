@@ -1,4 +1,1 @@
-"""User model placeholder."""
-
-class User:
-    """Authentication identity and operation creator."""
+from app.models.all_models import User

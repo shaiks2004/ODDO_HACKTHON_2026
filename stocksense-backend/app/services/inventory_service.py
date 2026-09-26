@@ -1,16 +1,10 @@
-"""Inventory service contract placeholder."""
-
-from typing import Any
-
-
+from app.core.exceptions import ResourceNotFoundError
+from app.models import Product
+from app.repositories.inventory_repository import InventoryRepository
 class InventoryService:
-    """Future owner of location-aware stock operations."""
-
-    def get_stock(self, *args: Any, **kwargs: Any) -> Any:
-        raise NotImplementedError
-
-    def get_stock_by_location(self, *args: Any, **kwargs: Any) -> Any:
-        raise NotImplementedError
-
-    def calculate_free_to_use(self, *args: Any, **kwargs: Any) -> Any:
-        raise NotImplementedError
+ def __init__(self):self.repo=InventoryRepository()
+ def list(self,db,**filters):return self.repo.rows(db,**filters)
+ def product_summary(self,db,product_id):
+  product=db.get(Product,product_id)
+  if not product:raise ResourceNotFoundError('Product not found')
+  return product,self.repo.rows(db,product_id=product_id)

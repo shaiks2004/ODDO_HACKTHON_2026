@@ -1,4 +1,1 @@
-"""Delivery item model placeholder."""
-
-class DeliveryItem:
-    """Product quantity belonging to a delivery."""
+from app.models.all_models import DeliveryItem

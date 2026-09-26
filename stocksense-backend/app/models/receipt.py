@@ -1,4 +1,1 @@
-"""Receipt model placeholder."""
-
-class Receipt:
-    """Incoming goods operation header."""
+from app.models.all_models import Receipt
