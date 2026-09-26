@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { useInventory } from '../../context/InventoryContext';
-import { Boxes, Lock, Mail, ArrowRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Boxes, Lock, Mail, ArrowRight, ShieldCheck, CheckCircle2, UserPlus } from 'lucide-react';
 import { Modal } from '../../components/common/Modal';
 
 export const LoginPage: React.FC = () => {
@@ -11,24 +12,53 @@ export const LoginPage: React.FC = () => {
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [resetSubmitted, setResetSubmitted] = useState(false);
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { login, showToast } = useInventory();
+  const { login } = useAuth();
+  const { showToast } = useInventory();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleLogin = (e: React.FormEvent) => {
+  // Redirect target if intercepted by ProtectedRoute
+  const destination = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard';
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    login(email, password);
-    navigate('/dashboard');
+    if (!email.trim()) {
+      setError('Please enter your work email.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError('');
+
+    const success = await login({ email: email.trim(), password, rememberMe });
+    setIsSubmitting(false);
+
+    if (success) {
+      navigate(destination, { replace: true });
+    } else {
+      setError('Invalid credentials. Please verify your email and password.');
+    }
   };
 
   const handleForgotPassword = (e: React.FormEvent) => {
     e.preventDefault();
     setResetSubmitted(true);
-    showToast('info', 'Password Reset Link Generated', `Password reset instructions sent to ${forgotEmail || email}`);
+    showToast('info', 'Password Reset Requested', `Instructions sent to ${forgotEmail || email}`);
     setTimeout(() => {
       setIsForgotModalOpen(false);
       setResetSubmitted(false);
     }, 2000);
+  };
+
+  const handleQuickDemoLogin = async (demoEmail: string) => {
+    setEmail(demoEmail);
+    const success = await login({ email: demoEmail });
+    if (success) {
+      navigate(destination, { replace: true });
+    }
   };
 
   return (
@@ -36,28 +66,39 @@ export const LoginPage: React.FC = () => {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Brand Header */}
         <div className="flex justify-center mb-3">
-          <div className="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-md">
-            <Boxes className="w-6 h-6 text-emerald-400" />
+          <div className="w-10 h-10 rounded bg-slate-900 flex items-center justify-center text-white shadow-2xs">
+            <Boxes className="w-5 h-5 text-emerald-400" />
           </div>
         </div>
-        <h1 className="text-center text-2xl font-bold tracking-tight text-slate-900">
-          StockSense
-        </h1>
-        <p className="mt-1 text-center text-xs font-medium text-slate-500">
-          Inventory Management System
-        </p>
+        <div className="text-center">
+          <h1 className="text-xl font-bold tracking-tight text-slate-900 flex items-center justify-center gap-1.5">
+            <span>StockSense</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-slate-200 text-slate-700 border border-slate-300">
+              ERP
+            </span>
+          </h1>
+          <p className="mt-0.5 text-xs text-slate-500 font-medium">
+            Smart Inventory. Simple Operations.
+          </p>
+        </div>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
-        <div className="bg-white py-8 px-6 shadow-sm border border-slate-200 rounded-xl sm:px-10">
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold text-slate-900">
+      <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
+        <div className="bg-white py-7 px-6 border border-slate-200 rounded-lg sm:px-8 shadow-2xs">
+          <div className="mb-5">
+            <h2 className="text-base font-bold text-slate-900">
               Sign in to your account
             </h2>
-            <p className="text-xs text-slate-500 mt-1">
-              Enter your credentials to access warehouse operations.
+            <p className="text-xs text-slate-500 mt-0.5">
+              Enter your corporate credentials to access warehouse operations.
             </p>
           </div>
+
+          {error && (
+            <div className="mb-4 p-2.5 bg-rose-50 border border-rose-200 rounded text-xs text-rose-700 font-medium">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
@@ -67,7 +108,7 @@ export const LoginPage: React.FC = () => {
               >
                 Work Email Address
               </label>
-              <div className="relative rounded-md shadow-2xs">
+              <div className="relative rounded shadow-2xs">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                   <Mail className="w-4 h-4" />
                 </div>
@@ -76,8 +117,11 @@ export const LoginPage: React.FC = () => {
                   type="email"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-slate-900 outline-none transition-all placeholder:text-slate-400"
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (error) setError('');
+                  }}
+                  className="block w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded focus:ring-1 focus:ring-slate-900 focus:border-slate-900 outline-none transition-all placeholder:text-slate-400"
                   placeholder="name@company.com"
                 />
               </div>
@@ -99,7 +143,7 @@ export const LoginPage: React.FC = () => {
                   Forgot Password?
                 </button>
               </div>
-              <div className="relative rounded-md shadow-2xs">
+              <div className="relative rounded shadow-2xs">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                   <Lock className="w-4 h-4" />
                 </div>
@@ -108,8 +152,11 @@ export const LoginPage: React.FC = () => {
                   type="password"
                   required
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-slate-900 outline-none transition-all placeholder:text-slate-400"
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (error) setError('');
+                  }}
+                  className="block w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded focus:ring-1 focus:ring-slate-900 focus:border-slate-900 outline-none transition-all placeholder:text-slate-400"
                   placeholder="••••••••••••"
                 />
               </div>
@@ -131,44 +178,47 @@ export const LoginPage: React.FC = () => {
               </span>
             </div>
 
-            <button
-              type="submit"
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 border border-transparent rounded-lg text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 shadow-xs transition-colors cursor-pointer mt-2"
-            >
-              <span>Login</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+            <div className="pt-2 flex items-center gap-2">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1 flex items-center justify-center gap-2 py-2 px-4 border border-transparent rounded text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <span>{isSubmitting ? 'Signing In...' : 'Login'}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+
+              <Link
+                to="/register"
+                className="inline-flex items-center justify-center gap-1.5 py-2 px-3.5 border border-slate-300 rounded text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>Register</span>
+              </Link>
+            </div>
           </form>
 
           {/* Quick Demo Access Bar */}
-          <div className="mt-5 pt-5 border-t border-slate-100">
-            <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider text-center mb-2">
-              Quick Demo Access
+          <div className="mt-5 pt-4 border-t border-slate-100">
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-center mb-2">
+              Quick Demo Personas
             </p>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                onClick={() => {
-                  setEmail('m.vance@stocksense.io');
-                  login('m.vance@stocksense.io');
-                  navigate('/dashboard');
-                }}
-                className="p-2 text-left rounded border border-slate-200 hover:bg-slate-50 text-xs transition-colors"
+                onClick={() => handleQuickDemoLogin('m.vance@stocksense.io')}
+                className="p-2 text-left rounded border border-slate-200 hover:bg-slate-50 text-xs transition-colors cursor-pointer"
               >
                 <span className="font-semibold text-slate-800 block truncate">Marcus Vance</span>
-                <span className="text-[10px] text-slate-500">Manager</span>
+                <span className="text-[10px] text-slate-500 font-mono">Manager (Full Access)</span>
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setEmail('e.rostova@stocksense.io');
-                  login('e.rostova@stocksense.io');
-                  navigate('/dashboard');
-                }}
-                className="p-2 text-left rounded border border-slate-200 hover:bg-slate-50 text-xs transition-colors"
+                onClick={() => handleQuickDemoLogin('e.rostova@stocksense.io')}
+                className="p-2 text-left rounded border border-slate-200 hover:bg-slate-50 text-xs transition-colors cursor-pointer"
               >
                 <span className="font-semibold text-slate-800 block truncate">Elena Rostova</span>
-                <span className="text-[10px] text-slate-500">Staff</span>
+                <span className="text-[10px] text-slate-500 font-mono">Warehouse Staff</span>
               </button>
             </div>
           </div>
@@ -176,9 +226,9 @@ export const LoginPage: React.FC = () => {
           {/* Create Account Link */}
           <div className="mt-5 pt-4 border-t border-slate-100 text-center">
             <p className="text-xs text-slate-600">
-              Don't have an account?{' '}
-              <Link to="/signup" className="font-semibold text-slate-900 hover:underline">
-                Create Account
+              New team member?{' '}
+              <Link to="/register" className="font-semibold text-slate-900 hover:underline">
+                Create an account
               </Link>
             </p>
           </div>
@@ -194,22 +244,22 @@ export const LoginPage: React.FC = () => {
         isOpen={isForgotModalOpen}
         onClose={() => setIsForgotModalOpen(false)}
         title="Reset Password"
-        subtitle="We will generate a secure reset link for your account."
+        subtitle="Generate a password recovery link for your account."
         maxWidth="sm"
       >
         {resetSubmitted ? (
           <div className="py-6 text-center space-y-2">
             <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
-            <h4 className="text-sm font-semibold text-slate-900">Reset Link Sent</h4>
+            <h4 className="text-sm font-semibold text-slate-900">Recovery Instructions Sent</h4>
             <p className="text-xs text-slate-500">
-              Check your inbox for step-by-step credentials recovery.
+              Check your inbox for step-by-step account recovery.
             </p>
           </div>
         ) : (
           <form onSubmit={handleForgotPassword} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Your Email Address
+                Your Work Email Address
               </label>
               <input
                 type="email"
@@ -217,20 +267,20 @@ export const LoginPage: React.FC = () => {
                 value={forgotEmail || email}
                 onChange={(e) => setForgotEmail(e.target.value)}
                 placeholder="m.vance@stocksense.io"
-                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 outline-none"
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded focus:ring-1 focus:ring-slate-900 outline-none"
               />
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setIsForgotModalOpen(false)}
-                className="px-3.5 py-1.5 text-xs font-medium text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50"
+                className="px-3 py-1.5 text-xs font-medium text-slate-600 border border-slate-300 rounded hover:bg-slate-50 cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-3.5 py-1.5 text-xs font-semibold text-white bg-slate-900 rounded-lg hover:bg-slate-800"
+                className="px-3.5 py-1.5 text-xs font-semibold text-white bg-slate-900 rounded hover:bg-slate-800 cursor-pointer"
               >
                 Send Reset Link
               </button>

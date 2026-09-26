@@ -52,7 +52,7 @@ export const WarehousePage: React.FC = () => {
     setFormName('');
     setFormShortCode('');
     setFormAddress('');
-    setFormManager('Marcus Vance');
+    setFormManager('');
     setFormPhone('');
     setFormError('');
     setIsAddModalOpen(true);
@@ -412,7 +412,7 @@ export const WarehousePage: React.FC = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Facility Manager:</span>
-                <span className="font-semibold text-slate-800">{viewingWarehouse.manager || 'Marcus Vance'}</span>
+                <span className="font-semibold text-slate-800">{viewingWarehouse.manager || 'Unassigned'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Facility Code:</span>

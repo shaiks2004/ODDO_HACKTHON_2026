@@ -13,7 +13,7 @@ import {
 import { UnitOfMeasure } from '../../types/inventory';
 
 export const SettingsPage: React.FC = () => {
-  const { settings, updateSettings, warehouses, showToast } = useInventory();
+  const { settings, updateSettings, warehouses, showToast, resetToDemoData } = useInventory();
 
   const [formData, setFormData] = useState({ ...settings });
 
@@ -163,6 +163,52 @@ export const SettingsPage: React.FC = () => {
                 </div>
               </label>
             </div>
+          </div>
+        </div>
+
+        {/* Development & Data Source Section */}
+        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-2xs space-y-4">
+          <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+            <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-700">
+              <RotateCcw className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-slate-900">Development & Data Source</h2>
+              <p className="text-xs text-slate-500">Development-only controls for prototype testing and backend data integration.</p>
+            </div>
+          </div>
+
+          <div className="p-3 bg-slate-50 border border-slate-200 rounded text-xs space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-slate-600 font-medium">Configured Data Source:</span>
+              <span className="font-mono font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">
+                {import.meta.env.VITE_DATA_SOURCE || 'mock'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-slate-600 font-medium">Backend API Base URL:</span>
+              <span className="font-mono text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200">
+                {import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 pt-1">
+              Note: When connecting a real backend API, update <code className="font-mono text-slate-800">VITE_DATA_SOURCE=api</code> in your environment variables.
+            </p>
+          </div>
+
+          <div className="pt-2 flex items-center justify-between">
+            <div>
+              <span className="text-xs font-semibold text-slate-900 block">Reset Mock Inventory Dataset</span>
+              <span className="text-[11px] text-slate-500 block">Restores demo products, warehouses, receipts, and move history to factory initial state.</span>
+            </div>
+            <button
+              type="button"
+              onClick={resetToDemoData}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded transition-colors cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Reset Demo Data</span>
+            </button>
           </div>
         </div>
 

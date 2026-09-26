@@ -54,9 +54,9 @@ export const DeliveryDetailPage: React.FC = () => {
     return prod ? item.quantity > prod.onHand : false;
   });
 
-  const handleValidate = () => {
+  const handleValidate = async () => {
     setValidationError('');
-    const res = validateDelivery(delivery.id);
+    const res = await validateDelivery(delivery.id);
     if (!res.success) {
       setValidationError(res.message || 'Insufficient stock available for this delivery.');
     }

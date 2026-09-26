@@ -25,11 +25,13 @@ export const ProfilePage: React.FC = () => {
     setTimeout(() => setSavedSuccess(false), 3000);
   };
 
-  const initials = profile.name
+  const initials = (profile.name || 'User')
     .split(' ')
+    .filter(Boolean)
     .map((n) => n[0])
     .join('')
-    .substring(0, 2);
+    .substring(0, 2)
+    .toUpperCase() || 'U';
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -39,22 +41,26 @@ export const ProfilePage: React.FC = () => {
       />
 
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
-        {/* Profile Card Banner */}
-        <div className="h-28 bg-gradient-to-r from-slate-900 to-slate-800 p-6 flex items-end">
-          <div className="translate-y-10 flex items-end gap-4">
-            <div className="w-20 h-20 rounded-xl bg-slate-100 border-4 border-white shadow-md flex items-center justify-center text-slate-800 text-2xl font-bold font-mono">
-              {initials}
-            </div>
-            <div className="mb-2 text-white">
-              <h2 className="text-lg font-bold leading-tight">{profile.name}</h2>
+        {/* Enterprise Profile Header */}
+        <div className="bg-slate-900 p-5 flex items-center gap-4 text-white">
+          <div className="w-14 h-14 rounded bg-slate-800 border border-slate-700 flex items-center justify-center text-white text-xl font-bold font-mono shrink-0">
+            {initials}
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-base font-bold leading-tight truncate">{profile.name}</h2>
+            <div className="flex items-center gap-2 mt-1">
               <span className="text-xs text-slate-300 font-medium">
-                {profile.role} · {profile.department}
+                {profile.role}
+              </span>
+              <span className="text-slate-500">·</span>
+              <span className="text-xs text-emerald-400 font-mono">
+                {profile.department}
               </span>
             </div>
           </div>
         </div>
 
-        <div className="pt-14 p-6">
+        <div className="p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             {savedSuccess && (
               <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-800 flex items-center gap-2">

@@ -60,17 +60,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       >
         <div>
           {/* Brand Header */}
-          <div className="h-16 flex items-center justify-between px-5 border-b border-slate-100">
+          <div className="h-14 flex items-center justify-between px-4 border-b border-slate-200 bg-white">
             <NavLink to="/dashboard" onClick={onClose} className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white shadow-2xs">
+              <div className="w-7 h-7 rounded bg-slate-900 flex items-center justify-center text-white shrink-0">
                 <Boxes className="w-4 h-4 text-emerald-400" />
               </div>
-              <div>
-                <span className="text-base font-bold tracking-tight text-slate-900 block leading-tight">
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-bold tracking-tight text-slate-900 block leading-tight">
                   StockSense
                 </span>
-                <span className="text-[10px] text-slate-500 font-medium tracking-tight block">
-                  Inventory Management
+                <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                  ERP
                 </span>
               </div>
             </NavLink>
@@ -177,18 +177,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-100 transition-colors group"
           >
             <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
-              {profile.name
+              {(profile?.name || 'User')
                 .split(' ')
+                .filter(Boolean)
                 .map((n) => n[0])
                 .join('')
-                .substring(0, 2)}
+                .substring(0, 2)
+                .toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold text-slate-900 truncate">
-                {profile.name}
+                {profile?.name || 'User'}
               </p>
               <p className="text-[11px] text-slate-500 truncate">
-                {profile.role}
+                {profile?.role || 'Staff'}
               </p>
             </div>
             <User className="w-4 h-4 text-slate-400 group-hover:text-slate-600 shrink-0" />

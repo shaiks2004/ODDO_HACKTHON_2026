@@ -37,16 +37,34 @@ export const NewDeliveryPage: React.FC = () => {
   );
   const [notes, setNotes] = useState('');
 
-  // Initial product row
-  const [rows, setRows] = useState<FormProductRow[]>([
-    {
-      productId: products[0]?.id || '',
-      productName: products[0]?.name || 'Steel Rods',
-      sku: products[0]?.sku || 'STL-001',
-      quantity: 20,
-      unit: products[0]?.unit || 'kg',
-    },
-  ]);
+  // Initial product row initialized dynamically from product catalog
+  const [rows, setRows] = useState<FormProductRow[]>(() => {
+    const defaultProd = products[0];
+    return [
+      {
+        productId: defaultProd?.id || '',
+        productName: defaultProd?.name || '',
+        sku: defaultProd?.sku || '',
+        quantity: 5,
+        unit: defaultProd?.unit || 'pcs',
+      },
+    ];
+  });
+
+  // Ensure first row is populated once products are loaded
+  React.useEffect(() => {
+    if (products.length > 0 && rows.length === 1 && !rows[0].productId) {
+      setRows([
+        {
+          productId: products[0].id,
+          productName: products[0].name,
+          sku: products[0].sku,
+          quantity: 5,
+          unit: products[0].unit,
+        },
+      ]);
+    }
+  }, [products]);
 
   const [error, setError] = useState('');
 

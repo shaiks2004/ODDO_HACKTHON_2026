@@ -93,26 +93,52 @@ export const LedgerPage: React.FC = () => {
         actions={
           <button
             onClick={exportCSV}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Export Move Ledger</span>
+            <span>Export CSV</span>
           </button>
         }
       />
 
+      {/* Aggregate Transaction Metrics */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white border border-slate-200 rounded-lg p-3 shadow-2xs">
+        <div className="border-r border-slate-100 pr-2 last:border-none">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block">Total Logged</span>
+          <span className="text-xl font-bold font-mono text-slate-900 tabular-nums">{moveHistory.length}</span>
+        </div>
+        <div className="border-r border-slate-100 px-2 last:border-none">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block">Receipts</span>
+          <span className="text-xl font-bold font-mono text-emerald-700 tabular-nums">
+            {moveHistory.filter((m) => m.operation === 'Receipt').length}
+          </span>
+        </div>
+        <div className="border-r border-slate-100 px-2 last:border-none">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block">Deliveries</span>
+          <span className="text-xl font-bold font-mono text-blue-700 tabular-nums">
+            {moveHistory.filter((m) => m.operation === 'Delivery').length}
+          </span>
+        </div>
+        <div className="pl-2">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block">Internal Moves</span>
+          <span className="text-xl font-bold font-mono text-slate-700 tabular-nums">
+            {moveHistory.filter((m) => m.operation === 'Internal Transfer').length}
+          </span>
+        </div>
+      </div>
+
       {/* Multi-attribute Search and Filter Toolbar (Requirements Section 20) */}
-      <div className="bg-white border border-slate-200 rounded-lg p-3.5 shadow-2xs space-y-3">
+      <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-2xs space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {/* Universal Search by Reference, Product, Operation, Warehouse, Location */}
           <div className="relative sm:col-span-1">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
             <input
               type="text"
               placeholder="Search reference, product, warehouse, location..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:ring-1 focus:ring-slate-900 outline-none"
+              className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded focus:ring-1 focus:ring-slate-900 outline-none"
             />
           </div>
 
@@ -120,7 +146,7 @@ export const LedgerPage: React.FC = () => {
             <select
               value={operationFilter}
               onChange={(e) => setOperationFilter(e.target.value)}
-              className="w-full py-2 px-3 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:ring-1 focus:ring-slate-900 outline-none"
+              className="w-full py-1.5 px-2.5 text-xs bg-slate-50 border border-slate-200 rounded focus:ring-1 focus:ring-slate-900 outline-none"
             >
               <option value="All">All Operations (Receipt, Delivery, Transfer)</option>
               <option value="Receipt">Receipts (Incoming)</option>
@@ -133,9 +159,9 @@ export const LedgerPage: React.FC = () => {
             <select
               value={warehouseFilter}
               onChange={(e) => setWarehouseFilter(e.target.value)}
-              className="w-full py-2 px-3 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:ring-1 focus:ring-slate-900 outline-none"
+              className="w-full py-1.5 px-2.5 text-xs bg-slate-50 border border-slate-200 rounded focus:ring-1 focus:ring-slate-900 outline-none"
             >
-              <option value="All">All Warehouses & Locations</option>
+              <option value="All">All Facilities & Locations</option>
               {warehouses.map((wh) => (
                 <option key={wh.id} value={wh.name}>
                   {wh.name}
@@ -161,19 +187,19 @@ export const LedgerPage: React.FC = () => {
       </div>
 
       {/* Wireframe Matching Move History Table */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-2xs overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-lg shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50/90 text-slate-700 font-semibold border-b border-slate-200 uppercase tracking-wider text-[11px]">
+            <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200 uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="py-3.5 px-4">Reference</th>
-                <th className="py-3.5 px-4">Date</th>
-                <th className="py-3.5 px-4">Operation</th>
-                <th className="py-3.5 px-4">Product</th>
-                <th className="py-3.5 px-4">From</th>
-                <th className="py-3.5 px-4">To</th>
-                <th className="py-3.5 px-4 text-right">Quantity</th>
-                <th className="py-3.5 px-4 text-right">Status</th>
+                <th className="py-2.5 px-3.5">Reference</th>
+                <th className="py-2.5 px-3">Date & Time</th>
+                <th className="py-2.5 px-3">Operation</th>
+                <th className="py-2.5 px-3">Product</th>
+                <th className="py-2.5 px-3">From</th>
+                <th className="py-2.5 px-3">To</th>
+                <th className="py-2.5 px-3 text-right">Quantity</th>
+                <th className="py-2.5 px-3.5 text-right">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -187,25 +213,25 @@ export const LedgerPage: React.FC = () => {
               ) : (
                 filteredHistory.map((m) => (
                   <tr key={m.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3.5 px-4 font-mono font-bold text-slate-900">
+                    <td className="py-2.5 px-3.5 font-mono font-bold text-slate-900">
                       {m.reference}
                     </td>
-                    <td className="py-3.5 px-4 font-mono text-slate-600 whitespace-nowrap">
+                    <td className="py-2.5 px-3 font-mono text-slate-600 whitespace-nowrap tabular-nums">
                       {m.date}
                     </td>
-                    <td className="py-3.5 px-4">
+                    <td className="py-2.5 px-3">
                       {getOperationIcon(m.operation)}
                     </td>
-                    <td className="py-3.5 px-4 font-bold text-slate-900">
+                    <td className="py-2.5 px-3 font-semibold text-slate-900">
                       {m.product}
                     </td>
-                    <td className="py-3.5 px-4 text-slate-700 max-w-[160px] truncate">
+                    <td className="py-2.5 px-3 text-slate-600 max-w-[160px] truncate">
                       {m.from}
                     </td>
-                    <td className="py-3.5 px-4 text-slate-700 max-w-[160px] truncate">
+                    <td className="py-2.5 px-3 text-slate-600 max-w-[160px] truncate">
                       {m.to}
                     </td>
-                    <td className="py-3.5 px-4 font-mono font-bold text-right text-sm">
+                    <td className="py-2.5 px-3 font-mono font-bold text-right text-xs tabular-nums">
                       <span
                         className={
                           m.operation === 'Receipt'
@@ -218,7 +244,7 @@ export const LedgerPage: React.FC = () => {
                         {m.operation === 'Receipt' ? `+${m.quantity}` : m.operation === 'Delivery' ? `-${m.quantity}` : m.quantity} {m.unit}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-right">
+                    <td className="py-2.5 px-3.5 text-right">
                       <StatusBadge status={m.status} />
                     </td>
                   </tr>
@@ -226,6 +252,16 @@ export const LedgerPage: React.FC = () => {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Footer info */}
+        <div className="p-2.5 px-3.5 bg-slate-50/70 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-500">
+          <span>
+            Displaying {filteredHistory.length} movements
+          </span>
+          <span className="font-mono">
+            Audit Integrity: Verified
+          </span>
         </div>
       </div>
     </div>

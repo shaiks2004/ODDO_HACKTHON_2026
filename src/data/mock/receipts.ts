@@ -1,0 +1,75 @@
+import { Receipt } from '../../types/receipt';
+
+export const mockReceipts: Receipt[] = [
+  {
+    id: 'rec-1',
+    reference: 'WH/IN/0001',
+    supplier: 'Apex Metallurgy Corp',
+    scheduleDate: '26/09/2026',
+    warehouseId: 'wh-1',
+    warehouseName: 'Main Warehouse',
+    status: 'Ready',
+    items: [
+      {
+        productId: 'prod-1',
+        productName: 'Steel Rods',
+        sku: 'STL-001',
+        quantity: 150,
+        unit: 'kg',
+        unitPrice: 4.5,
+      },
+      {
+        productId: 'prod-2',
+        productName: 'Copper Wire',
+        sku: 'CPR-044',
+        quantity: 50,
+        unit: 'm',
+        unitPrice: 12.0,
+      },
+    ],
+    notes: 'Scheduled delivery via Northern Freight Line. Priority receipt.',
+    createdAt: '2026-09-24',
+  },
+  {
+    id: 'rec-2',
+    reference: 'WH/IN/0002',
+    supplier: 'Silicon Dynamics GmbH',
+    scheduleDate: '27/09/2026',
+    warehouseId: 'wh-2',
+    warehouseName: 'Warehouse 1',
+    status: 'Waiting',
+    items: [
+      {
+        productId: 'prod-3',
+        productName: 'Microcontroller IC',
+        sku: 'MIC-902',
+        quantity: 500,
+        unit: 'pcs',
+        unitPrice: 8.75,
+      },
+    ],
+    notes: 'Direct courier shipment from Munich logistics hub.',
+    createdAt: '2026-09-24',
+  },
+  {
+    id: 'rec-3',
+    reference: 'WH/IN/0003',
+    supplier: 'Delta Packaging Ltd',
+    scheduleDate: '25/09/2026',
+    warehouseId: 'wh-1',
+    warehouseName: 'Main Warehouse',
+    status: 'Done',
+    items: [
+      {
+        productId: 'prod-4',
+        productName: 'Packaging Boxes (Large)',
+        sku: 'PKG-012',
+        quantity: 200,
+        unit: 'boxes',
+        unitPrice: 1.8,
+      },
+    ],
+    notes: 'Received, inspected, and palletized at Pallet Bay 3.',
+    createdAt: '2026-09-22',
+  },
+];

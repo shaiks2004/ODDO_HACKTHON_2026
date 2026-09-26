@@ -1,6 +1,6 @@
 {
   "name": "StockSense",
-  "description": "Smart Inventory. Simple Operations. Professional enterprise inventory management system.",
+  "description": "Professional enterprise inventory management system for inventory managers and warehouse operations.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

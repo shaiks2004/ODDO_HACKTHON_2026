@@ -47,8 +47,8 @@ export const ReceiptDetailPage: React.FC = () => {
     );
   }
 
-  const handleValidate = () => {
-    const res = validateReceipt(receipt.id);
+  const handleValidate = async () => {
+    const res = await validateReceipt(receipt.id);
     if (res.success) {
       // Stay on page to see status changed to Done
     }
