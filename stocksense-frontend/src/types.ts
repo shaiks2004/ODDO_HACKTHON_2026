@@ -2,23 +2,12 @@ export type UUID = string
 export type OperationStatus = 'DRAFT' | 'WAITING' | 'READY' | 'DONE' | 'CANCELED'
 export type MovementType = 'INITIAL_STOCK' | 'RECEIPT' | 'DELIVERY' | 'TRANSFER_OUT' | 'TRANSFER_IN' | 'ADJUSTMENT'
 export type UnitOfMeasure = 'UNIT' | 'KG' | 'METER' | 'LITER' | 'PAIR' | 'PACK'
-export type UserRole = 'ADMIN' | 'INVENTORY_MANAGER' | 'WAREHOUSE_STAFF'
 
 export interface Page<T> {
   items: T[]
   page: number
   page_size: number
   total: number
-}
-
-export interface User {
-  id: UUID
-  name: string
-  email: string
-  role: UserRole
-  is_active: boolean
-  created_at: string
-  updated_at: string
 }
 
 export interface Category {
@@ -197,85 +186,8 @@ export interface DashboardSummary {
   scheduled_transfers: number
 }
 
-export interface DashboardWarehouseTotal {
-  warehouse_id: UUID
-  warehouse_name: string
-  location_count: number
-  product_count: number
-  on_hand: string
-  reserved: string
-  free_to_use: string
-  stock_value: string
-}
-
-export interface DashboardLocationTotal {
-  location_id: UUID
-  location_name: string
-  location_code: string
-  warehouse_id: UUID
-  warehouse_name: string
-  product_count: number
-  on_hand: string
-  reserved: string
-  free_to_use: string
-  stock_value: string
-}
-
-export interface AdvancedDashboardSummary {
-  total_products: number
-  active_products: number
-  low_stock_products: number
-  out_of_stock_products: number
-  total_on_hand: string
-  total_reserved: string
-  total_free_to_use: string
-  total_stock_value: string
-  pending_receipts: number
-  late_receipts: number
-  waiting_receipts: number
-  pending_deliveries: number
-  late_deliveries: number
-  waiting_deliveries: number
-  scheduled_transfers: number
-  ready_transfers: number
-  warehouses: DashboardWarehouseTotal[]
-  locations: DashboardLocationTotal[]
-  recent_movements: StockLedgerEntry[]
-}
-
-export interface StockValuationRow {
-  warehouse_id: UUID
-  warehouse_name: string
-  total_on_hand: string
-  total_reserved: string
-  total_free_to_use: string
-  distinct_products: number
-  total_stock_value: string
-}
-
-export interface MovementVolumeRow {
-  movement_type: MovementType
-  movement_count: number
-  quantity_volume: string
-}
-
-export interface ProductMovementRank {
-  product_id: UUID
-  product_name: string
-  sku: string
-  unit_of_measure: UnitOfMeasure
-  movement_count: number
-  movement_volume: string
-}
-
 export interface TokenResponse {
   access_token: string
   token_type: string
   refresh_token: string | null
-}
-
-export interface SignupResponse {
-  message: string
-  email: string
-  requires_verification: boolean
 }

@@ -86,10 +86,10 @@ export function DashboardPage() {
       <Card className="movement-chart-card">
         <div className="section-heading"><div><div className="eyebrow">MOVEMENT HISTORY</div><h2>Recent stock activity</h2><p>Quantities from the latest ledger entries</p></div><Link className="text-link" to="/movements">Full history <ArrowRight size={14} /></Link></div>
         {loading ? <div className="chart-skeleton"><Skeleton /></div> : movementData.length ? <div className="movement-chart"><ResponsiveContainer width="100%" height="100%"><BarChart data={movementData} margin={{ top: 12, right: 8, left: -18, bottom: 0 }}>
-          <CartesianGrid vertical={false} stroke="#edf0f5" strokeDasharray="3 5" />
-          <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: '#9aa1b1', fontSize: 11 }} dy={9} />
-          <Tooltip cursor={{ fill: '#f7f7fb' }} contentStyle={{ border: '1px solid #ececf2', borderRadius: 12, boxShadow: '0 8px 30px rgba(32,35,54,.08)' }} formatter={(value) => [quantity(Number(value)), 'Quantity']} labelFormatter={(_, payload) => payload?.[0]?.payload?.type ?? ''} />
-          <Bar dataKey="amount" fill="#a99af0" radius={[6, 6, 2, 2]} maxBarSize={34} />
+          <CartesianGrid vertical={false} stroke="#D9DDE4" strokeDasharray="3 5" />
+          <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: '#4B5260', fontSize: 11, fontWeight: 600 }} dy={9} />
+          <Tooltip cursor={{ fill: '#F0EEFF' }} contentStyle={{ border: '1px solid #C8CDD6', borderRadius: 12, boxShadow: '0 8px 30px rgba(20,24,35,.08)', color: '#111318', fontWeight: 600 }} formatter={(value) => [quantity(Number(value)), 'Quantity']} labelFormatter={(_, payload) => payload?.[0]?.payload?.type ?? ''} />
+          <Bar dataKey="amount" fill="#5846B8" radius={[6, 6, 2, 2]} maxBarSize={34} />
         </BarChart></ResponsiveContainer></div> : <EmptyState title="No stock movements yet" description="Validated receipts, deliveries, transfers, and adjustments will appear here." />}
       </Card>
 
