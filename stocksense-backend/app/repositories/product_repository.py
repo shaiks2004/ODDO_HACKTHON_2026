@@ -1,0 +1,1 @@
+"""Product persistence extension points."""

@@ -1,0 +1,1 @@
+"""Pydantic schema package. Schemas are intentionally scaffold-only."""

@@ -1,0 +1,1 @@
+"""Location persistence extension points."""

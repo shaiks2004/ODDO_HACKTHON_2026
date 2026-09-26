@@ -1,0 +1,1 @@
+"""Stock ledger persistence extension points."""

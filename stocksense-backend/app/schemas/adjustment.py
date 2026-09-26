@@ -1,0 +1,1 @@
+"""Adjustment schema placeholders."""

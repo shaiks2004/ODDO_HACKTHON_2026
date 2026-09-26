@@ -1,0 +1,1 @@
+"""Receipt persistence extension points."""

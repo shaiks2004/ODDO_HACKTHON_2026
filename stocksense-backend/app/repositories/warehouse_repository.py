@@ -1,0 +1,1 @@
+"""Warehouse persistence extension points."""

@@ -1,0 +1,1 @@
+"""Warehouse schema placeholders."""

@@ -1,0 +1,1 @@
+"""Reusable pagination contract placeholder."""
