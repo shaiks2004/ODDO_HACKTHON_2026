@@ -1,0 +1,1 @@
+"""Shared test fixtures will be added with the implementation phase."""
