@@ -78,3 +78,33 @@ def test_delivery_not_found_and_invalid_payload(auth_context):
 		json={"customer_name": "Customer", "source_location_id": LOCATION_ID, "items": []},
 	)
 	assert invalid.status_code == 422
+
+
+def test_delivery_print_flow(auth_context):
+	client = auth_context["client"]
+	headers = auth_context["headers"]
+	created = client.post(
+		"/api/v1/deliveries",
+		headers=headers,
+		json={
+			"customer_name": "Print Customer",
+			"source_location_id": LOCATION_ID,
+			"items": [{"product_id": PRODUCT_ID, "quantity": "1.000"}],
+		},
+	)
+	assert created.status_code == 201
+	delivery_id = created.json()["id"]
+
+	# Printing DRAFT delivery fails
+	unprinted = client.get(f"/api/v1/deliveries/{delivery_id}/print", headers=headers)
+	assert unprinted.status_code == 409
+
+	# Prepare and validate delivery to DONE
+	client.post(f"/api/v1/deliveries/{delivery_id}/prepare", headers=headers)
+	client.post(f"/api/v1/deliveries/{delivery_id}/validate", headers=headers)
+
+	# Printing DONE delivery returns 200 HTML
+	printed = client.get(f"/api/v1/deliveries/{delivery_id}/print", headers=headers)
+	assert printed.status_code == 200
+	assert "text/html" in printed.headers["content-type"]
+	assert "Outbound Delivery Order" in printed.text

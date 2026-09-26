@@ -8,9 +8,13 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.api.v1.dependencies import db_session as db_session_dependency
+from app.api.v1.rate_limit import auth_limiter
 from app.core.config import settings
 from app.core.database import engine
+from app.core.security import create_access_token, hash_password
 from app.main import app
+from app.models import User
+from app.utils.enums import UserRole
 
 
 @pytest.fixture
@@ -40,6 +44,8 @@ def client(db_session: Session, monkeypatch) -> Generator[TestClient, None, None
 		"stocksense_system_user_id",
 		UUID("00000000-0000-0000-0000-000000000001"),
 	)
+	monkeypatch.setattr(settings, "auth_rate_limit", "0/minute")
+	auth_limiter._events.clear()
 
 	def override_db_session():
 		yield db_session
@@ -50,20 +56,27 @@ def client(db_session: Session, monkeypatch) -> Generator[TestClient, None, None
 			yield test_client
 	finally:
 		app.dependency_overrides.pop(db_session_dependency, None)
+		auth_limiter._events.clear()
 
 
 @pytest.fixture
-def auth_context(client: TestClient):
+def auth_context(client: TestClient, db_session: Session):
 	from uuid import uuid4
 
 	email = f"phase2-{uuid4().hex}@example.test"
-	response = client.post(
-		"/api/v1/auth/signup",
-		json={"name": "Phase Two Tester", "email": email, "password": "StrongPass@123"},
+	user = User(
+		name="Phase Two Admin",
+		email=email,
+		password_hash=hash_password("StrongPass@123"),
+		role=UserRole.ADMIN,
+		is_active=True,
 	)
-	assert response.status_code == 201, response.text
+	db_session.add(user)
+	db_session.flush()
+	token = create_access_token(str(user.id))
 	return {
 		"client": client,
 		"email": email,
-		"headers": {"Authorization": f"Bearer {response.json()['access_token']}"},
+		"user": user,
+		"headers": {"Authorization": f"Bearer {token}"},
 	}

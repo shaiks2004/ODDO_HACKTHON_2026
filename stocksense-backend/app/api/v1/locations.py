@@ -1,6 +1,7 @@
 from uuid import UUID
 from fastapi import APIRouter,Depends,status
 from sqlalchemy.orm import Session
+from app.api.v1.authorization import require_inventory_management
 from app.api.v1.dependencies import db_session,error
 from app.schemas.location import LocationCreate,LocationResponse,LocationUpdate
 from app.services.location_service import LocationService
@@ -13,11 +14,11 @@ def list_locations(search:str|None=None,warehouse_id:UUID|None=None,is_active:bo
 def get_location(location_id:UUID,db:Session=Depends(db_session)):
  try:return service.get(db,location_id)
  except Exception as e:error(e)
-@router.post('',response_model=LocationResponse,status_code=status.HTTP_201_CREATED,summary='Create location')
+@router.post('',response_model=LocationResponse,status_code=status.HTTP_201_CREATED,summary='Create location',dependencies=[Depends(require_inventory_management)])
 def create_location(payload:LocationCreate,db:Session=Depends(db_session)):
  try:x=service.create(db,payload.model_dump());db.commit();db.refresh(x);return x
  except Exception as e:db.rollback();error(e)
-@router.patch('/{location_id}',response_model=LocationResponse,summary='Update location')
+@router.patch('/{location_id}',response_model=LocationResponse,summary='Update location',dependencies=[Depends(require_inventory_management)])
 def update_location(location_id:UUID,payload:LocationUpdate,db:Session=Depends(db_session)):
  try:x=service.update(db,location_id,payload.model_dump(exclude_unset=True));db.commit();db.refresh(x);return x
  except Exception as e:db.rollback();error(e)

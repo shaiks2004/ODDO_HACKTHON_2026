@@ -46,3 +46,32 @@ def test_receipt_not_found_and_invalid_payload(auth_context):
 		json={"supplier_name": "Supplier", "destination_location_id": LOCATION_ID, "items": []},
 	)
 	assert invalid.status_code == 422
+
+
+def test_receipt_print_flow(auth_context):
+	client = auth_context["client"]
+	headers = auth_context["headers"]
+	created = client.post(
+		"/api/v1/receipts",
+		headers=headers,
+		json={
+			"supplier_name": "Print Supplier",
+			"destination_location_id": LOCATION_ID,
+			"items": [{"product_id": PRODUCT_ID, "quantity": "1.000"}],
+		},
+	)
+	assert created.status_code == 201
+	receipt_id = created.json()["id"]
+
+	# Printing DRAFT receipt fails
+	unprinted = client.get(f"/api/v1/receipts/{receipt_id}/print", headers=headers)
+	assert unprinted.status_code == 409
+
+	# Validate receipt to DONE
+	client.post(f"/api/v1/receipts/{receipt_id}/validate", headers=headers)
+
+	# Printing DONE receipt returns 200 HTML
+	printed = client.get(f"/api/v1/receipts/{receipt_id}/print", headers=headers)
+	assert printed.status_code == 200
+	assert "text/html" in printed.headers["content-type"]
+	assert "Goods Receipt Slip" in printed.text

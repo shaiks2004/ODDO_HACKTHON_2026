@@ -35,3 +35,7 @@ class InvalidQuantityError(StockSenseError):
 
 class UnauthorizedOperationError(StockSenseError):
     """User is not authorized for an operation."""
+
+
+class ForbiddenOperationError(StockSenseError):
+    """Authenticated user does not have the required role."""
