@@ -1,6 +1,6 @@
 # StockSense Backend
 
-FastAPI 1.0 foundation for StockSense, using SQLAlchemy 2.x and the existing PostgreSQL 18 database `Oddo_Hackthon`. This phase contains database configuration, read-only ORM mappings, initial Pydantic schemas, API versioning, and health checks only. Business endpoints and stock workflows are intentionally not implemented.
+FastAPI backend for StockSense, using SQLAlchemy 2.x and the existing PostgreSQL 18 database `Odoo_Hackthon`. The schema is treated as frozen; the application does not create or migrate tables.
 
 ## Setup
 
@@ -20,9 +20,11 @@ DATABASE_URL=postgresql+psycopg://<user>:<url-encoded-password>@localhost:5432/O
 JWT_SECRET_KEY=replace-with-a-long-random-secret
 JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
+OTP_EXPIRE_MINUTES=10
+STOCKSENSE_SYSTEM_USER_ID=00000000-0000-0000-0000-000000000001
 ```
 
-The existing database is the source of truth. The API performs no schema DDL and no Alembic migration should be generated in this phase. The separate SQL initialization files are in `database/`.
+Use the existing database credentials in `DATABASE_URL`; do not put a database password in source control. `STOCKSENSE_SYSTEM_USER_ID` must identify an existing user for ledger movements. Password reset codes are persisted but no email/SMS delivery provider is configured yet.
 
 ## Running and testing
 
@@ -32,6 +34,12 @@ python -m pytest
 ```
 
 Swagger is available at `http://127.0.0.1:8000/docs`. `GET /health` reports service status; `GET /health/db` performs a read-only `SELECT 1` connection check. `tests/test_database.py` checks that the seeded product data is visible without modifying the database.
+
+## API Foundation
+
+Phase 1 master-data and read-only inventory endpoints remain available under `/api/v1`. Phase 2 adds signup/login and password reset, authenticated receipt/delivery/transfer/adjustment workflows, paginated stock-ledger history, and a dashboard summary. Stock-changing validation runs through the transactional movement engine. These are the initial API flows; an OTP delivery channel is still required for a user-facing password-reset flow.
+
+Run all tests with `python -m pytest`. PostgreSQL integration tests require a configured `.env`; test fixtures wrap each test in an outer transaction and roll it back after the test.
 
 ## Database architecture
 
