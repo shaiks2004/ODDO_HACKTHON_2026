@@ -6,10 +6,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from sqlalchemy import func, select, text
 from app.core.database import SessionLocal
 from app.models import Category, Inventory, Location, Product, StockLedger, Warehouse
-from app.services.inventory_service import InventoryService
-from app.services.alert_service import AlertService
-from app.services.dashboard_service import DashboardService
-from app.services.report_service import ReportService
+from app.services.inventory_service import inventory_service
+from app.services.alert_service import alert_service
+from app.services.dashboard_service import dashboard_service
+from app.services.report_service import report_service
 
 def verify_all():
     db = SessionLocal()
@@ -126,31 +126,23 @@ def verify_all():
 
         # 7. Services & Reports verification
         print("\n7. Backend Services & Reports Verification:")
-        inv_service = InventoryService()
-        alert_srv = AlertService()
-        dash_service = DashboardService()
-        rep_service = ReportService()
-
         # Inventory pagination
-        rows, total = inv_service.page(db, page=1, page_size=20)
+        rows, total = inventory_service.list_paged(db, page=1, page_size=20)
         print(f"   - Inventory Paged (Page 1, size 20): returned {len(rows)} rows, total {total} items")
 
         # Low stock alerts query
-        alerts = alert_srv.low_stock(db)
+        alerts = alert_service.low_stock(db)
         print(f"   - Low Stock / Out of Stock alerts detected: {len(alerts)} alerts")
 
         # Advanced Dashboard summary
-        summary = dash_service.advanced_summary(db)
-        print(f"   - Dashboard Total Products: {summary.total_products}")
-        print(f"   - Dashboard Total Stock Value: INR {summary.total_stock_value:,.2f}")
-        print(f"   - Dashboard Total On Hand: {summary.total_on_hand:,.2f}")
-        print(f"   - Dashboard Total Reserved: {summary.total_reserved:,.2f}")
-        print(f"   - Dashboard Total Free-To-Use: {summary.total_free_to_use:,.2f}")
-        print(f"   - Dashboard Warehouse Breakdowns: {len(summary.warehouses)} warehouses")
+        summary = dashboard_service.get_advanced_summary(db)
+        print(f"   - Dashboard Total Products: {summary['total_products']}")
+        print(f"   - Dashboard Total Stock Value: ₹{summary['total_stock_value']:,.2f}")
+        print(f"   - Dashboard Active Warehouses: {summary['active_warehouses']}")
 
         # Stock Valuation Report
-        stock_val, total_val = rep_service.stock_valuation(db, page=1, page_size=50)
-        print(f"   - Stock Valuation Report returned {len(stock_val)} rows (total: {total_val})")
+        stock_val = report_service.stock_valuation(db)
+        print(f"   - Stock Valuation Report returned {len(stock_val)} warehouse groups")
 
         print("\n" + "=" * 60)
         print("ALL 100 TEST DATA VERIFICATION CHECKS PASSED SUCCESSFULLY!")
