@@ -1,5 +1,4 @@
-"""FastAPI application entry point."""
-
+from sklearn.model_selection import train_test_split
 from fastapi import FastAPI, HTTPException
 from sqlalchemy import text
 
