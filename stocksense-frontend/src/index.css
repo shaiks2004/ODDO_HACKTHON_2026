@@ -1,0 +1,91 @@
+:root {
+  font-family: 'Open Sans', sans-serif;
+  color: #272a35;
+  background: #f5f6fa;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --background: #f5f6fa;
+  --surface: #ffffff;
+  --surface-muted: #f8f8fb;
+  --surface-tint: #f1f0fb;
+  --text-primary: #272a35;
+  --text-secondary: #858a99;
+  --text-tertiary: #a4a8b4;
+  --border: #e9eaf0;
+  --border-strong: #dedfe8;
+  --primary: #7969d4;
+  --primary-strong: #6857c6;
+  --primary-soft: #f0edff;
+  --accent-orange: #e39a5d;
+  --accent-orange-soft: #fff3e8;
+  --accent-coral: #d97984;
+  --accent-coral-soft: #fff0f1;
+  --success: #439879;
+  --success-soft: #eaf7f1;
+  --warning: #c98736;
+  --warning-soft: #fff5e8;
+  --danger: #c96972;
+  --danger-soft: #fff0f1;
+  --info: #6282bb;
+  --info-soft: #eef3ff;
+  --radius-xs: 8px;
+  --radius-sm: 11px;
+  --radius-md: 15px;
+  --radius-lg: 20px;
+  --radius-xl: 26px;
+  --shadow-card: 0 3px 14px rgba(38, 43, 67, 0.035), 0 1px 2px rgba(38, 43, 67, 0.025);
+  --shadow-float: 0 18px 55px rgba(38, 43, 67, 0.14), 0 2px 8px rgba(38, 43, 67, 0.07);
+  --transition-fast: 150ms ease;
+  --transition-standard: 220ms ease;
+  --sidebar-width: 252px;
+
+  font-optical-sizing: auto;
+}
+
+* { box-sizing: border-box; }
+
+html { min-width: 320px; min-height: 100%; scroll-behavior: smooth; }
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background: var(--background);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+body, button, input, select, textarea { font-family: 'Open Sans', sans-serif; }
+
+button, input, select, textarea { font-size: inherit; }
+
+button { color: inherit; }
+
+a { color: inherit; text-decoration: none; }
+
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid rgba(121, 105, 212, 0.28);
+  outline-offset: 2px;
+}
+
+input, select, textarea { color: var(--text-primary); }
+
+::selection { background: #ded9ff; color: #302c50; }
+
+#root { min-height: 100vh; }
+
+h1, h2, h3, h4, .brand-name, .kpi-value {
+  font-family: 'Poppins', sans-serif;
+  color: var(--text-primary);
+}
+
+h1, h2, h3, p { margin-top: 0; }
+
+button:disabled { cursor: not-allowed; opacity: 0.58; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
