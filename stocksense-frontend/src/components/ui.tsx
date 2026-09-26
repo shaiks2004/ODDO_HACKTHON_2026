@@ -12,6 +12,8 @@ export function friendlyError(error: unknown): string {
   if (error.status === 409) return error.message || 'This change conflicts with an existing record.'
   if (error.status === 422) return error.message || 'Please review the highlighted fields and try again.'
   if (error.status === 429) return 'Too many requests. Please try again shortly.'
+  if (error.status === 503 && /phase 3 reporting service/i.test(error.message)) return 'CSV export is unavailable: the Phase 3 reporting service is not attached to this backend yet.'
+  if (error.status === 503) return 'StockSense is temporarily unavailable. Please try again shortly.'
   if (error.status >= 500) return 'StockSense could not complete that request. Please try again.'
   return error.message || 'The request could not be completed.'
 }

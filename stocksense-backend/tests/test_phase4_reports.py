@@ -29,12 +29,15 @@ def test_csv_export_streams_provider_rows_and_preserves_filters(auth_context, mo
     assert provider.filters == {"warehouse_id": "warehouse-1"}
 
 
-def test_csv_export_is_unavailable_until_phase_three_provider_is_attached(auth_context):
+def test_csv_export_works_with_phase_three_reporting_service(auth_context):
     response = auth_context["client"].get(
         "/api/v1/reports/stock/export?format=csv",
         headers=auth_context["headers"],
     )
-    assert response.status_code == 503
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/csv")
+    lines = response.text.splitlines()
+    assert lines[0] == "warehouse_id,warehouse_name,total_on_hand,total_reserved,total_free_to_use,distinct_products,total_stock_value"
 
 
 def test_invalid_report_name_is_rejected(auth_context):

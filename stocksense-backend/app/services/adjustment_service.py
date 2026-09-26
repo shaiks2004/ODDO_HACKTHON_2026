@@ -58,5 +58,17 @@ class AdjustmentService:
             db.rollback()
             raise
 
+    def cancel_adjustment(self, db: Session, adjustment_id: UUID):
+        try:
+            adjustment = self.get(db, adjustment_id)
+            if adjustment.status != OperationStatus.DRAFT:
+                raise ConflictError("Only draft adjustments can be canceled")
+            adjustment.status = OperationStatus.CANCELED
+            db.commit()
+            return self.get(db, adjustment_id)
+        except Exception:
+            db.rollback()
+            raise
+
 
 adjustment_service = AdjustmentService()

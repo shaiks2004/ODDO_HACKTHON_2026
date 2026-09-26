@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.api.v1.auth_dependencies import get_current_user
+from app.api.v1.authorization import require_inventory_management
 from app.api.v1.dependencies import db_session, error
 from app.models import User
 from app.schemas.delivery import DeliveryCreate, DeliveryResponse
@@ -56,7 +57,7 @@ def prepare_delivery(delivery_id: UUID, db: Session = Depends(db_session), _user
 		error(exc)
 
 
-@router.post("/{delivery_id}/validate", response_model=DeliveryResponse)
+@router.post("/{delivery_id}/validate", response_model=DeliveryResponse, dependencies=[Depends(require_inventory_management)])
 def validate_delivery(delivery_id: UUID, db: Session = Depends(db_session), _user: User = Depends(get_current_user)):
 	try:
 		return delivery_service.validate_delivery(db, delivery_id)
@@ -64,9 +65,19 @@ def validate_delivery(delivery_id: UUID, db: Session = Depends(db_session), _use
 		error(exc)
 
 
-@router.post("/{delivery_id}/cancel", response_model=DeliveryResponse)
+@router.post("/{delivery_id}/cancel", response_model=DeliveryResponse, dependencies=[Depends(require_inventory_management)])
 def cancel_delivery(delivery_id: UUID, db: Session = Depends(db_session), _user: User = Depends(get_current_user)):
 	try:
 		return delivery_service.cancel_delivery(db, delivery_id)
 	except Exception as exc:
 		error(exc)
+
+
+@router.get("/{delivery_id}/print")
+def print_delivery(delivery_id: UUID, db: Session = Depends(db_session), _user: User = Depends(get_current_user)):
+	from fastapi.responses import HTMLResponse
+	try:
+		html = delivery_service.print_delivery(db, delivery_id)
+		return HTMLResponse(content=html, status_code=200)
+	except Exception as exc:
+		error(exc)

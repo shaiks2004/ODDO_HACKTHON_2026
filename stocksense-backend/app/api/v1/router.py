@@ -15,6 +15,7 @@ from app.api.v1 import (
 	receipts,
 	stock_ledger,
 	transfers,
+	users,
 	warehouses,
 )
 
@@ -33,3 +34,4 @@ api_router.include_router(adjustments.router)
 api_router.include_router(stock_ledger.router)
 api_router.include_router(dashboard.router)
 api_router.include_router(reports.router)
+api_router.include_router(users.router)

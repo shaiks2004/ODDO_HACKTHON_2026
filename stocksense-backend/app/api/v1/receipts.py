@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.api.v1.auth_dependencies import get_current_user
+from app.api.v1.authorization import require_inventory_management
 from app.api.v1.dependencies import db_session, error
 from app.models import User
 from app.schemas.receipt import ReceiptCreate, ReceiptResponse
@@ -48,7 +49,7 @@ def create_receipt(payload: ReceiptCreate, db: Session = Depends(db_session), us
 		error(exc)
 
 
-@router.post("/{receipt_id}/validate", response_model=ReceiptResponse)
+@router.post("/{receipt_id}/validate", response_model=ReceiptResponse, dependencies=[Depends(require_inventory_management)])
 def validate_receipt(receipt_id: UUID, db: Session = Depends(db_session), _user: User = Depends(get_current_user)):
 	try:
 		return receipt_service.validate_receipt(db, receipt_id)
@@ -56,9 +57,19 @@ def validate_receipt(receipt_id: UUID, db: Session = Depends(db_session), _user:
 		error(exc)
 
 
-@router.post("/{receipt_id}/cancel", response_model=ReceiptResponse)
+@router.post("/{receipt_id}/cancel", response_model=ReceiptResponse, dependencies=[Depends(require_inventory_management)])
 def cancel_receipt(receipt_id: UUID, db: Session = Depends(db_session), _user: User = Depends(get_current_user)):
 	try:
 		return receipt_service.cancel_receipt(db, receipt_id)
 	except Exception as exc:
 		error(exc)
+
+
+@router.get("/{receipt_id}/print")
+def print_receipt(receipt_id: UUID, db: Session = Depends(db_session), _user: User = Depends(get_current_user)):
+	from fastapi.responses import HTMLResponse
+	try:
+		html = receipt_service.print_receipt(db, receipt_id)
+		return HTMLResponse(content=html, status_code=200)
+	except Exception as exc:
+		error(exc)

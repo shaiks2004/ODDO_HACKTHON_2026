@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.api.v1.auth_dependencies import get_current_user
+from app.api.v1.authorization import require_inventory_management
 from app.api.v1.dependencies import db_session, error
 from app.models import User
 from app.schemas.transfer import TransferCreate, TransferResponse
@@ -48,7 +49,7 @@ def create_transfer(payload: TransferCreate, db: Session = Depends(db_session), 
 		error(exc)
 
 
-@router.post("/{transfer_id}/validate", response_model=TransferResponse)
+@router.post("/{transfer_id}/validate", response_model=TransferResponse, dependencies=[Depends(require_inventory_management)])
 def validate_transfer(transfer_id: UUID, db: Session = Depends(db_session), _user: User = Depends(get_current_user)):
 	try:
 		return transfer_service.validate_transfer(db, transfer_id)
@@ -56,7 +57,7 @@ def validate_transfer(transfer_id: UUID, db: Session = Depends(db_session), _use
 		error(exc)
 
 
-@router.post("/{transfer_id}/cancel", response_model=TransferResponse)
+@router.post("/{transfer_id}/cancel", response_model=TransferResponse, dependencies=[Depends(require_inventory_management)])
 def cancel_transfer(transfer_id: UUID, db: Session = Depends(db_session), _user: User = Depends(get_current_user)):
 	try:
 		return transfer_service.cancel_transfer(db, transfer_id)

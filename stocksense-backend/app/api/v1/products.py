@@ -1,6 +1,7 @@
 from uuid import UUID
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
+from app.api.v1.authorization import require_inventory_management
 from app.api.v1.dependencies import db_session,error
 from app.schemas.product import ProductCreate,ProductResponse,ProductUpdate
 from app.services.product_service import ProductService
@@ -13,11 +14,11 @@ def list_products(search:str|None=None,category_id:UUID|None=None,is_active:bool
 def get_product(product_id:UUID,db:Session=Depends(db_session)):
  try:return service.get(db,product_id)
  except Exception as e:error(e)
-@router.post('',response_model=ProductResponse,status_code=status.HTTP_201_CREATED,summary='Create product')
+@router.post('',response_model=ProductResponse,status_code=status.HTTP_201_CREATED,summary='Create product',dependencies=[Depends(require_inventory_management)])
 def create_product(payload:ProductCreate,db:Session=Depends(db_session)):
  try:x=service.create(db,payload.model_dump());db.commit();db.refresh(x);return x
  except Exception as e:db.rollback();error(e)
-@router.patch('/{product_id}',response_model=ProductResponse,summary='Update product')
+@router.patch('/{product_id}',response_model=ProductResponse,summary='Update product',dependencies=[Depends(require_inventory_management)])
 def update_product(product_id:UUID,payload:ProductUpdate,db:Session=Depends(db_session)):
  try:x=service.update(db,product_id,payload.model_dump(exclude_unset=True));db.commit();db.refresh(x);return x
  except Exception as e:db.rollback();error(e)
