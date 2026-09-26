@@ -78,7 +78,7 @@ export function DashboardPage() {
     <section className="operation-strip" aria-label="Pending operations">
       <Link to="/receipts" className="operation-chip"><span className="operation-chip-icon receipt-tone"><PackageCheck size={17} /></span><span><small>Pending receipts</small><strong>{loading ? '—' : count(summary?.pending_receipts.pending)}</strong></span><ArrowRight size={15} /></Link>
       <Link to="/deliveries" className="operation-chip"><span className="operation-chip-icon delivery-tone"><ArrowUpRight size={17} /></span><span><small>Pending deliveries</small><strong>{loading ? '—' : count(summary?.pending_deliveries.pending)}</strong></span><ArrowRight size={15} /></Link>
-      <Link to="/receipts?status=WAITING" className="operation-chip"><span className="operation-chip-icon late-tone"><ArrowDownRight size={17} /></span><span><small>Late receipts</small><strong>{loading ? '—' : count(summary?.pending_receipts.late)}</strong></span><ArrowRight size={15} /></Link>
+      <Link to="/receipts" className="operation-chip"><span className="operation-chip-icon late-tone"><ArrowDownRight size={17} /></span><span><small>Late receipts</small><strong>{loading ? '—' : count(summary?.pending_receipts.late)}</strong></span><ArrowRight size={15} /></Link>
       <Link to="/deliveries?status=WAITING" className="operation-chip"><span className="operation-chip-icon waiting-tone"><CircleAlert size={17} /></span><span><small>Waiting deliveries</small><strong>{loading ? '—' : count(summary?.pending_deliveries.waiting)}</strong></span><ArrowRight size={15} /></Link>
     </section>
 

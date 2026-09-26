@@ -35,6 +35,19 @@ function loadDocuments(kind: Kind, page: number, search: string, status?: Operat
 function documentReference(row: Document) { return row.reference }
 function documentStatus(row: Document) { return row.status }
 function documentItems(row: Document) { return 'items' in row ? row.items : [] }
+function canValidate(kind: Kind, status: OperationStatus) {
+  return kind === 'deliveries'
+    ? status === 'READY'
+    : (kind === 'receipts' || kind === 'transfers' || kind === 'adjustments') && (status === 'DRAFT' || status === 'READY')
+}
+function canPrepare(kind: Kind, status: OperationStatus) {
+  return kind === 'deliveries' && (status === 'DRAFT' || status === 'WAITING')
+}
+function canCancel(kind: Kind, status: OperationStatus) {
+  if (kind === 'receipts' || kind === 'transfers') return status === 'DRAFT' || status === 'READY'
+  if (kind === 'deliveries') return status === 'DRAFT' || status === 'READY' || status === 'WAITING'
+  return false
+}
 function quantity(value: string | number | undefined) { return new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(Number(value ?? 0)) }
 function displayDate(value: string | null) { return value ? new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value)) : 'Not scheduled' }
 
@@ -162,8 +175,8 @@ export function OperationsPage({ kind }: { kind: Kind }) {
         <td><button className="reference-button" onClick={() => setActive(row)}><strong>{documentReference(row)}</strong><small>Created {displayDate(row.created_at)}</small></button></td>
         <td><span className="counterparty-cell">{otherParty(row)}</span></td>
         <td>{'physical_quantity' in row ? <span className={Number(row.difference) < 0 ? 'quantity-negative' : 'quantity-positive'}>{Number(row.difference) > 0 ? '+' : ''}{quantity(row.difference)}</span> : <><strong>{documentItems(row).length} items</strong><small className="table-secondary">{quantity(lineTotal(row))} total units</small></>}</td>
-        <td>{displayDate('scheduled_date' in row ? row.scheduled_date : null)}</td><td><Badge>{documentStatus(row)}</Badge></td>
-        <td><div className="row-actions">{kind === 'deliveries' && row.status !== 'DONE' && row.status !== 'CANCELED' && <Button size="sm" variant="secondary" disabled={busyId === row.id} onClick={() => runAction(row, 'prepare')}>Prepare</Button>}{row.status !== 'DONE' && row.status !== 'CANCELED' && <Button size="sm" disabled={busyId === row.id || (row.status === 'WAITING' && kind === 'deliveries')} onClick={() => runAction(row, 'validate')}>{busyId === row.id ? 'Working…' : 'Validate'}</Button>}{kind !== 'adjustments' && row.status !== 'DONE' && row.status !== 'CANCELED' && <IconButton label={`Cancel ${row.reference}`} className="danger-icon" onClick={() => runAction(row, 'cancel')}><X size={16} /></IconButton>}</div></td>
+        <td>{displayDate('scheduled_date' in row ? row.scheduled_date : null)}</td><td><Badge>{documentStatus(row)}</Badge>{kind === 'deliveries' && row.status === 'WAITING' && <small className="waiting-note">Waiting for free stock</small>}</td>
+        <td><div className="row-actions">{canPrepare(kind, row.status) && <Button size="sm" variant="secondary" disabled={busyId === row.id} onClick={() => runAction(row, 'prepare')}>Prepare</Button>}{canValidate(kind, row.status) && <Button size="sm" disabled={busyId === row.id} onClick={() => runAction(row, 'validate')}>{busyId === row.id ? 'Working…' : 'Validate'}</Button>}{canCancel(kind, row.status) && <IconButton label={`Cancel ${row.reference}`} className="danger-icon" onClick={() => runAction(row, 'cancel')}><X size={16} /></IconButton>}</div></td>
       </tr>)}</tbody></table></div>}
       {!loading && total > 0 && <Pagination page={page} pageSize={PAGE_SIZE} total={total} onChange={setPage} />}
     </Card>
@@ -186,8 +199,8 @@ export function OperationsPage({ kind }: { kind: Kind }) {
         </div>}
       </form>
     </Modal>}
-    {active && <Modal title={documentReference(active)} subtitle={`${pageInfo.title.slice(0, -1)} details`} onClose={() => setActive(null)} footer={<><Button variant="secondary" onClick={() => setActive(null)}>Close</Button>{active.status !== 'DONE' && active.status !== 'CANCELED' && <Button disabled={busyId === active.id} onClick={() => runAction(active, 'validate')}>Validate operation</Button>}</>}>
-      <div className="document-detail"><div className="detail-inline-status"><span>Status</span><Badge>{active.status}</Badge></div><div className="detail-inline-status"><span>Created</span><strong>{displayDate(active.created_at)}</strong></div>{'scheduled_date' in active && <div className="detail-inline-status"><span>Scheduled date</span><strong>{displayDate(active.scheduled_date)}</strong></div>}{'reason' in active && <div className="detail-inline-status"><span>Reason</span><strong>{active.reason}</strong></div>}
+    {active && <Modal title={documentReference(active)} subtitle={`${pageInfo.title.slice(0, -1)} details`} onClose={() => setActive(null)} footer={<><Button variant="secondary" onClick={() => setActive(null)}>Close</Button>{canCancel(kind, active.status) && <Button variant="danger" disabled={busyId === active.id} onClick={() => runAction(active, 'cancel')}>Cancel operation</Button>}{canPrepare(kind, active.status) && <Button variant="secondary" disabled={busyId === active.id} onClick={() => runAction(active, 'prepare')}>Prepare delivery</Button>}{canValidate(kind, active.status) && <Button disabled={busyId === active.id} onClick={() => runAction(active, 'validate')}>Validate operation</Button>}</>}>
+      <div className="document-detail"><div className="detail-inline-status"><span>Status</span><Badge>{active.status}</Badge></div>{kind === 'deliveries' && active.status === 'WAITING' && <div className="waiting-banner">Free stock is not currently available for this delivery. Replenish stock, then prepare the delivery again.</div>}<div className="detail-inline-status"><span>Created</span><strong>{displayDate(active.created_at)}</strong></div>{'scheduled_date' in active && <div className="detail-inline-status"><span>Scheduled date</span><strong>{displayDate(active.scheduled_date)}</strong></div>}{'reason' in active && <div className="detail-inline-status"><span>Reason</span><strong>{active.reason}</strong></div>}
         {'items' in active && <div className="document-items"><strong>Items</strong>{active.items.map((item) => <div className="document-item-row" key={item.id}><span>{productMap.get(item.product_id)?.name ?? item.product_id.slice(0, 8)}<small>{productMap.get(item.product_id)?.sku ?? 'Product'}</small></span><strong>{quantity(item.quantity)}</strong></div>)}</div>}
       </div>
     </Modal>}
